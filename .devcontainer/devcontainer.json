@@ -1,0 +1,26 @@
+{
+  "name": "Ecommerce Development",
+  "service": "app",
+  "workspaceFolder": "/workspaces/Ecommerce",
+  
+  "dockerComposeFile": ["docker-compose.yml"],
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "dsznajder.es7-react-js-snippets",
+        "formulahendry.auto-rename-tag",
+        "nrwl.angular-console",
+        "firsttris.vscode-jest-runner"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 3333, 5173]
+} 
