@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
+const defineAbilityFor = require('../utils/defineAbilities');
 
 // Middleware para proteger rutas
 const protect = async (req, res, next) => {
@@ -18,6 +19,9 @@ const protect = async (req, res, next) => {
 
       // Obtener usuario del token
       req.user = await User.findById(decoded.id).select('-password');
+      
+      // Definir habilidades para el usuario actual
+      req.ability = defineAbilityFor(req.user);
 
       next();
     } catch (error) {
@@ -31,6 +35,26 @@ const protect = async (req, res, next) => {
   }
 };
 
+// Middleware para verificar permisos usando CASL
+const authorize = (action, subject) => {
+  return (req, res, next) => {
+    try {
+      if (req.ability && req.ability.can(action, subject)) {
+        next();
+      } else {
+        res.status(403).json({ 
+          message: `No tienes permiso para ${action} ${subject}` 
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ 
+        message: 'Error en la verificación de permisos', 
+        error: error.message 
+      });
+    }
+  };
+};
+
 // Middleware para rutas de administrador
 const admin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
@@ -40,4 +64,4 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+module.exports = { protect, admin, authorize };

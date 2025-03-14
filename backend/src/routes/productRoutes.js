@@ -8,18 +8,19 @@ const {
   updateProduct,
   createProductReview,
 } = require('../controllers/productController');
-const { protect, admin } = require('../middlewares/authMiddleware');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
-// Rutas públicas
+// Rutas públicas y protegidas
 router.route('/')
   .get(getProducts)
-  .post(protect, admin, createProduct);
+  .post(protect, authorize('create', 'Product'), createProduct);
 
-router.route('/:id/reviews').post(protect, createProductReview);
+router.route('/:id/reviews')
+  .post(protect, authorize('create', 'Review'), createProductReview);
 
 router.route('/:id')
   .get(getProductById)
-  .delete(protect, admin, deleteProduct)
-  .put(protect, admin, updateProduct);
+  .delete(protect, authorize('delete', 'Product'), deleteProduct)
+  .put(protect, authorize('update', 'Product'), updateProduct);
 
 module.exports = router;

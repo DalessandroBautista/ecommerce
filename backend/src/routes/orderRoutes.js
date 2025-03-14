@@ -9,25 +9,26 @@ const {
   getOrders,
   createPayment,
 } = require('../controllers/orderController');
-const { protect, admin } = require('../middlewares/authMiddleware');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
-// Todas las rutas de órdenes requieren autenticación
+// Rutas protegidas
 router.route('/')
-  .post(protect, createOrder)
-  .get(protect, admin, getOrders);
+  .post(protect, authorize('create', 'Order'), createOrder)
+  .get(protect, authorize('read', 'all'), getOrders);
 
-router.route('/myorders').get(protect, getMyOrders);
+router.route('/myorders')
+  .get(protect, authorize('read', 'Order'), getMyOrders);
 
 router.route('/:id')
-  .get(protect, getOrderById);
+  .get(protect, authorize('read', 'Order'), getOrderById);
 
 router.route('/:id/pay')
-  .put(protect, updateOrderToPaid);
+  .put(protect, authorize('update', 'Order'), updateOrderToPaid);
 
 router.route('/:id/deliver')
-  .put(protect, admin, updateOrderToDelivered);
+  .put(protect, authorize('update', 'Order'), updateOrderToDelivered);
 
 router.route('/:id/create-payment')
-  .post(protect, createPayment);
+  .post(protect, authorize('update', 'Order'), createPayment);
 
 module.exports = router;

@@ -7,12 +7,13 @@ const {
   updateUserProfile,
   getUsers,
   deleteUser,
+  authUser,
 } = require('../controllers/userController');
 const { protect, admin } = require('../middlewares/authMiddleware');
 
 // Rutas públicas
+router.post('/login', authUser);
 router.post('/', registerUser);
-router.post('/login', loginUser);
 
 // Rutas protegidas
 router.route('/profile')

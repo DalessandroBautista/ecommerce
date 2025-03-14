@@ -47,6 +47,22 @@ const productSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+      // Definimos valores predeterminados, pero permitimos valores personalizados
+      enum: {
+        values: [
+          'Electrónica',
+          'Computadoras',
+          'Cámaras',
+          'Teléfonos',
+          'Accesorios',
+          'Hogar',
+          'Deportes',
+          'Belleza',
+          'Ropa',
+          'Otros'
+        ],
+        message: '{VALUE} no es una categoría válida'
+      }
     },
     description: {
       type: String,
@@ -72,6 +88,10 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 0,
+    },
+    featured: {
+      type: Boolean,
+      default: false,
     },
   },
   {

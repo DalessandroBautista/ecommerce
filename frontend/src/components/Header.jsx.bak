@@ -1,0 +1,92 @@
+import React, { useState } from 'react';
+import { Navbar, Nav, Container, Form, Button, NavDropdown } from 'react-bootstrap';
+import { FaShoppingCart, FaUser, FaSearch } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../redux/slices/userSlice';
+
+const Header = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Obtener información del usuario y carrito del estado global
+  const { user } = useSelector((state) => state.user);
+  const { items } = useSelector((state) => state.cart);
+
+  // Calcular cantidad total de items en el carrito
+  const cartItemsCount = items.reduce((acc, item) => acc + (item.quantity || 1), 0);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search/${searchTerm}`);
+      setSearchTerm('');
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  return (
+    <header>
+      <Navbar bg="dark" variant="dark" expand="lg" collapseOnSelect>
+        <Container>
+          <Link to="/">
+            <Navbar.Brand>Mi Tienda</Navbar.Brand>
+          </Link>
+          
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Form className="d-flex mx-auto" onSubmit={handleSearch}>
+              <Form.Control
+                type="text"
+                name="q"
+                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                placeholder="Buscar productos..."
+                className="mr-sm-2"
+              ></Form.Control>
+              <Button type="submit" variant="outline-light" className="ms-2">
+                <FaSearch />
+              </Button>
+            </Form>
+
+            <Nav className="ms-auto">
+              <Link to="/cart" className="nav-link">
+                <FaShoppingCart /> Carrito
+                {cartItemsCount > 0 && (
+                  <span className="badge rounded-pill bg-danger ms-1">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </Link>
+
+              {user ? (
+                <NavDropdown title={user.name || 'Usuario'} id="username">
+                  <Link to="/profile" className="dropdown-item">
+                    Perfil
+                  </Link>
+                  <NavDropdown.Item onClick={handleLogout}>
+                    Cerrar Sesión
+                  </NavDropdown.Item>
+                </NavDropdown>
+              ) : (
+                <Link to="/login" className="nav-link">
+                  <FaUser /> Iniciar Sesión
+                </Link>
+              )}
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+    </header>
+  );
+};
+
+export default Header;
