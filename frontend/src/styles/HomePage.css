@@ -1,0 +1,47 @@
+/* Estilo para la sección hero que ocupa todo el ancho */
+.hero-section {
+  width: 100%;
+  height: 500px; /* Ajusta la altura según tus necesidades */
+  background-color: #0a3356; /* Color azul marino similar a tu imagen */
+  background-image: url('../assets/hero-background.jpg'); /* Si tienes una imagen de fondo */
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+/* Para asegurarnos que ocupe todo el ancho */
+.hero-section:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100%;
+  margin-left: calc(-50vw + 50%);
+  background: inherit;
+  z-index: -1;
+}
+
+.hero-content {
+  text-align: center;
+  color: white;
+  padding: 0 20px;
+  max-width: 800px;
+  z-index: 1;
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.hero-content p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+} 

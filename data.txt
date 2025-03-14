@@ -1,0 +1,5 @@
+mongodb:
+dalessandrobau t0Jz3uG37BV9eeU0
+mongodb+srv://dalessandrobau:Gimnasia.123@cluster0.gi9em.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+jwt_secret= cb509d18c061817358a141bca6b431f81055eaa30fb39c6d84070c0140a3bc735195b1c13183d7bcb5128d7c06151b68b44961afad0a19c71794dd202f3235d9
+url back: https://thunder-rugs-backend.onrender.com

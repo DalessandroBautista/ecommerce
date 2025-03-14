@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=base
+      - DATABASE_PASSWORD=1003
+      - DATABASE_NAME=alfombras_db
+      - MONGODB_URI=mongodb://mongo:27017/ecommerce
+    volumes:
+      - ..:/workspaces/Ecommerce
+    networks:
+      - network_postgresql
+    depends_on:
+      - postgres
+      - mongo
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: base
+      POSTGRES_PASSWORD: 1003
+      POSTGRES_DB: alfombras_db
+    networks:
+      - network_postgresql
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - network_postgresql
+
+volumes:
+  postgres-data:
+  mongo-data:
+
+networks:
+  network_postgresql:
+    driver: bridge 
