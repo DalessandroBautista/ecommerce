@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import CategorySidebar from '../components/CategorySidebar';
 import { useDispatch, useSelector } from 'react-redux';
 import { listFeaturedProducts, listProducts } from '../redux/slices/productSlice';
@@ -12,6 +12,7 @@ import HeroBanner from '../components/HeroBanner';
 
 const HomePage = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { featuredProducts, loading, error } = useSelector((state) => state.product);
   const { user } = useSelector((state) => state.user);
   
@@ -27,6 +28,11 @@ const HomePage = () => {
       document.body.classList.remove('home-page');
     };
   }, [dispatch]);
+
+  // Función para manejar la edición de productos
+  const handleEdit = (id) => {
+    navigate(`/admin/product/${id}/edit`);
+  };
 
   return (
     <>
@@ -54,7 +60,11 @@ const HomePage = () => {
                     <Row>
                       {featuredProducts && featuredProducts.map((product) => (
                         <Col key={product._id} sm={6} md={4} className="mb-4">
-                          <ProductCard product={product} isAdmin={user && user.isAdmin} />
+                          <ProductCard 
+                            product={product} 
+                            isAdmin={user && user.isAdmin} 
+                            onEdit={handleEdit}
+                          />
                         </Col>
                       ))}
                     </Row>

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Card, InputGroup, Badge } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +16,7 @@ import {
 import { listCategories } from '../../redux/slices/categorySlice';
 import { FaArrowLeft, FaUpload, FaTags, FaBoxOpen, FaMoneyBillWave, 
   FaImage, FaFont, FaInfoCircle, FaSave, FaTimes } from 'react-icons/fa';
+import axios from 'axios';
 
 const ProductEditPage = () => {
   const { id } = useParams();
@@ -43,6 +45,10 @@ const ProductEditPage = () => {
   const [uploading, setUploading] = useState(false);
 
   const { categories } = useSelector((state) => state.category);
+
+  // Añade estas referencias al principio del componente, después de los estados
+  const fileInputRef = useRef(null);
+  const multipleFileInputRef = useRef(null);
 
   useEffect(() => {
     // Verificar si el usuario es administrador
@@ -84,16 +90,50 @@ const ProductEditPage = () => {
 
   const uploadFileHandler = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+    
     const formData = new FormData();
     formData.append('image', file);
     setUploading(true);
 
     try {
+      // Importar config o usar API_URL directamente
+      console.log('Iniciando carga de imagen...');
+      
+      // Usar dispatch y la acción Redux en lugar de axios directo
       const result = await dispatch(uploadProductImage(formData)).unwrap();
-      setImage(result.image);
+      console.log('Resultado de carga:', result);
+      setImage(result.imageUrl);
       setUploading(false);
     } catch (error) {
-      console.error(error);
+      console.error('Error detallado al subir imagen:', error);
+      setUploading(false);
+    }
+  };
+
+  const uploadMultipleFilesHandler = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    
+    try {
+      const uploadPromises = files.map(file => {
+        const formData = new FormData();
+        formData.append('image', file);
+        return dispatch(uploadProductImage(formData)).unwrap();
+      });
+      
+      const results = await Promise.all(uploadPromises);
+      const imageUrls = results.map(result => result.imageUrl);
+      
+      // Aquí actualizarías el estado con las URLs de las imágenes adicionales
+      // Por ejemplo, si tienes un estado como additionalImages:
+      // setAdditionalImages([...additionalImages, ...imageUrls]);
+      
+      setUploading(false);
+    } catch (error) {
+      console.error('Error al subir imágenes múltiples:', error);
       setUploading(false);
     }
   };
@@ -309,11 +349,13 @@ const ProductEditPage = () => {
                               <Button 
                                 variant="outline-primary" 
                                 className="w-100 d-flex align-items-center justify-content-center"
+                                onClick={() => fileInputRef.current.click()}
                               >
                                 <FaUpload className="me-2" /> Subir imagen principal
                                 <Form.Control 
                                   type="file" 
                                   className="d-none" 
+                                  ref={fileInputRef}
                                   onChange={uploadFileHandler}
                                 />
                               </Button>
@@ -325,13 +367,15 @@ const ProductEditPage = () => {
                                 <Button 
                                   variant="outline-secondary" 
                                   className="w-100 d-flex align-items-center justify-content-center"
+                                  onClick={() => multipleFileInputRef.current.click()}
                                 >
                                   <FaUpload className="me-2" /> Subir imágenes adicionales
                                   <Form.Control 
                                     type="file" 
                                     className="d-none" 
+                                    ref={multipleFileInputRef}
                                     multiple
-                                    onChange={(e) => console.log(e.target.files)}
+                                    onChange={uploadMultipleFilesHandler}
                                   />
                                 </Button>
                               </div>
