@@ -68,6 +68,15 @@ const ProductListPage = () => {
     }
   }, [dispatch, navigate, user, success, createdProduct, pageNumber]);
 
+  useEffect(() => {
+    if (user && user.isAdmin) {
+      console.log('Admin autenticado, cargando productos...');
+      dispatch(listProducts({ keyword, pageNumber }));
+    } else {
+      console.log('Usuario no es admin o no está autenticado');
+    }
+  }, [dispatch, pageNumber, keyword, user]);
+
   const deleteHandler = (id) => {
     if (window.confirm('¿Estás seguro de eliminar este producto?')) {
       dispatch(deleteProduct(id));
@@ -115,9 +124,7 @@ const ProductListPage = () => {
             <Loader />
           ) : error ? (
             <Message variant="danger">{error}</Message>
-          ) : products.length === 0 ? (
-            <Message>No hay productos disponibles</Message>
-          ) : (
+          ) : products && products.length > 0 ? (
             <Row>
               {products.map((product) => (
                 <Col sm={12} md={6} lg={4} xl={3} className="mb-4" key={product._id}>
@@ -129,6 +136,8 @@ const ProductListPage = () => {
                 </Col>
               ))}
             </Row>
+          ) : (
+            <Message>No hay productos disponibles</Message>
           )}
         </Card.Body>
       </Card>

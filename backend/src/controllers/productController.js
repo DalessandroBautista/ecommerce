@@ -135,34 +135,37 @@ const createProduct = async (req, res) => {
 // @access  Privado/Admin
 const updateProduct = async (req, res) => {
   try {
-    const {
-      name,
-      price,
-      description,
-      image,
-      brand,
-      category,
-      countInStock,
-    } = req.body;
+    // Verificar si el usuario es administrador
+    if (!req.user || !req.user.isAdmin) {
+      console.log('Usuario no autorizado:', req.user);
+      return res.status(403).json({ message: 'No autorizado: Se requiere permisos de administrador' });
+    }
 
     const product = await Product.findById(req.params.id);
 
-    if (product) {
-      product.name = name || product.name;
-      product.price = price || product.price;
-      product.description = description || product.description;
-      product.image = image || product.image;
-      product.brand = brand || product.brand;
-      product.category = category || product.category;
-      product.countInStock = countInStock || product.countInStock;
-
-      const updatedProduct = await product.save();
-      res.json(updatedProduct);
-    } else {
-      res.status(404).json({ message: 'Producto no encontrado' });
+    if (!product) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
     }
+
+    // Registrar los datos recibidos para depuración
+    console.log('Datos recibidos para actualización:', req.body);
+    
+    // Actualizar los campos
+    product.name = req.body.name || product.name;
+    product.price = req.body.price || product.price;
+    product.description = req.body.description || product.description;
+    product.image = req.body.image || product.image;
+    product.brand = req.body.brand || product.brand;
+    product.category = req.body.category || product.category;
+    product.countInStock = req.body.countInStock || product.countInStock;
+    product.featured = req.body.featured !== undefined ? req.body.featured : product.featured;
+
+    // Guardar el producto actualizado
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error del servidor', error: error.message });
+    console.error('Error en updateProduct:', error);
+    res.status(500).json({ message: 'Error al actualizar el producto', error: error.message });
   }
 };
 

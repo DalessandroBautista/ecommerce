@@ -4,6 +4,7 @@ import { Container } from 'react-bootstrap';
 import { AbilityProvider } from './context/AbilityContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import AdminRoute from './components/AdminRoute';
 
 // Páginas Públicas
 import HomePage from './pages/HomePage';
@@ -54,15 +55,15 @@ const App = () => {
                     <Route path="/placeorder" element={<PlaceOrderPage />} />
                     <Route path="/order/:id" element={<OrderPage />} />
                     
-                    <Route path="/admin/dashboard" element={<Dashboard />} />
-                    <Route path="/admin/users" element={<UserListPage />} />
-                    <Route path="/admin/productlist" element={<ProductListPage />} />
-                    <Route path="/admin/productlist/:pageNumber" element={<ProductListPage />} />
-                    <Route path="/admin/product/:id/edit" element={<ProductEditPage />} />
-                    <Route path="/admin/categories" element={<CategoryListPage />} />
-                    <Route path="/admin/orders" element={<OrderListPage />} />
-                    <Route path="/admin/product/create" element={<ProductCreateEditPage />} />
-                    <Route path="/admin/product/:id/edit" element={<ProductCreateEditPage />} />
+                    <Route path="/admin" element={<AdminRoute />}>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="users" element={<UserListPage />} />
+                      <Route path="productlist" element={<ProductListPage />} />
+                      <Route path="product/create" element={<ProductCreateEditPage />} />
+                      <Route path="categories" element={<CategoryListPage />} />
+                      <Route path="orders" element={<OrderListPage />} />
+                      <Route path="product/:id/edit" element={<ProductEditPage />} />
+                    </Route>
                   </Routes>
                 </Container>
               } 

@@ -18,9 +18,20 @@ import { FaArrowLeft, FaUpload, FaTags, FaBoxOpen, FaMoneyBillWave,
 
 const ProductEditPage = () => {
   const { id } = useParams();
+  console.log('ProductEditPage renderizado, id:', id);
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  
+  // Verificar que el estado se está cargando correctamente
+  const { product, loading, error, success } = useSelector((state) => {
+    console.log('Estado actual en ProductEditPage:', state.product);
+    return state.product;
+  });
+  
+  const { user } = useSelector((state) => state.user);
+  console.log('Usuario actual:', user);
+  
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState('');
@@ -31,9 +42,7 @@ const ProductEditPage = () => {
   const [featured, setFeatured] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const { product, loading, error, success } = useSelector((state) => state.product);
   const { categories } = useSelector((state) => state.category);
-  const { user } = useSelector((state) => state.user);
 
   useEffect(() => {
     // Verificar si el usuario es administrador
@@ -47,22 +56,31 @@ const ProductEditPage = () => {
     
     if (success) {
       dispatch(resetProductUpdate());
-      navigate('/admin/products');
+      navigate('/admin/productlist');
+      return;
+    } 
+    
+    // Solo cargar los detalles del producto cuando no los tenemos
+    // o cuando el ID no coincide con el producto actual
+    if (!product || product._id !== id) {
+      console.log('Solicitando detalles del producto:', id);
+      dispatch(getProductDetails(id));
     } else {
-      if (!product || !product.name || product._id !== id) {
-        dispatch(getProductDetails(id));
-      } else {
-        setName(product.name);
-        setPrice(product.price);
-        setImage(product.image);
-        setBrand(product.brand);
-        setCategory(product.category);
-        setCountInStock(product.countInStock);
-        setDescription(product.description);
-        setFeatured(product.featured);
+      // Solo configurar los estados del formulario una vez
+      // cuando el producto está disponible y los campos están vacíos
+      if (name === '') {
+        console.log('Configurando formulario con producto:', product);
+        setName(product.name || '');
+        setPrice(product.price || 0);
+        setImage(product.image || '');
+        setBrand(product.brand || '');
+        setCategory(product.category || '');
+        setCountInStock(product.countInStock || 0);
+        setDescription(product.description || '');
+        setFeatured(product.featured || false);
       }
     }
-  }, [dispatch, id, product, success, navigate, user]);
+  }, [dispatch, id, product, success, navigate, user, name]);
 
   const uploadFileHandler = async (e) => {
     const file = e.target.files[0];
@@ -80,20 +98,59 @@ const ProductEditPage = () => {
     }
   };
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    dispatch(updateProduct({
-      _id: id,
+    
+    // Verificar si el usuario está autenticado
+    if (!user || !user.token) {
+      alert('No estás autenticado. Por favor inicia sesión nuevamente.');
+      navigate('/login');
+      return;
+    }
+
+    // Verificar si el usuario es administrador
+    if (!user.isAdmin) {
+      alert('No tienes permisos de administrador para esta acción.');
+      return;
+    }
+
+    // Crear objeto con datos del producto
+    const productData = {
       name,
       price,
       image,
       brand,
       category,
-      description,
       countInStock,
-      featured
-    }));
+    };
+    
+    // Imprimir información de depuración
+    console.log('Token:', user.token);
+    console.log('Datos a enviar:', productData);
+    
+    dispatch(updateProduct({ id, productData }));
   };
+
+  // Agregar un renderizado de depuración
+  if (loading) {
+    console.log('Cargando producto...');
+    return <Loader />;
+  }
+  
+  if (error) {
+    console.log('Error al cargar producto:', error);
+    return <Message variant="danger">{error}</Message>;
+  }
+  
+  if (!user || !user.isAdmin) {
+    console.log('Usuario no es admin:', user);
+    return <Message variant="danger">No tienes permisos para esta página</Message>;
+  }
+  
+  if (!product) {
+    console.log('Producto no encontrado en el estado');
+    return <Message variant="info">Cargando información del producto...</Message>;
+  }
 
   return (
     <Can I="update" a="Product">
