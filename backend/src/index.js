@@ -14,11 +14,33 @@ const categoryRoutes = require('./routes/categoryRoutes');
 // Inicializar app
 const app = express();
 
+// Configuración CORS para producción
+const whitelist = [
+  'https://thunder-rugs.vercel.app',
+  'https://thunder-rugs-git-main.vercel.app',
+  'https://thunder-rugs-yourname.vercel.app',
+  'http://localhost:5173', 'http://localhost:3000'
+  // Añade cualquier otro subdominio de Vercel que uses para preview
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como herramientas móviles o curl)
+    if (!origin || whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Origen bloqueado por CORS:', origin);
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+
 // Middlewares
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Añade todos los orígenes posibles
-  credentials: true
-}));
 app.use(express.json());
 
 // Ruta especial para webhook de Stripe que necesita cuerpo raw

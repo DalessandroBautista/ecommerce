@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const users = require('./data/users');
-const products = require('./data/products');
 const User = require('./models/userModel');
 const Product = require('./models/productModel');
-const Order = require('./models/orderModel');
+const Category = require('./models/categoryModel');
+const users = require('./data/users');
+const products = require('./data/products');
+const categories = require('./data/categories');
 
 dotenv.config();
 
@@ -15,20 +16,65 @@ mongoose
 
 const importData = async () => {
   try {
-    await Order.deleteMany();
+    // Limpiar bases de datos existentes
     await Product.deleteMany();
     await User.deleteMany();
+    await Category.deleteMany();
 
+    // Insertar usuarios
     const createdUsers = await User.insertMany(users);
-    const adminUser = createdUsers[0]._id;
+    const adminUserId = createdUsers[0]._id;
 
-    const sampleProducts = products.map((product) => {
-      return { ...product, user: adminUser };
+    // Insertar categorías y guardar referencias
+    const createdCategories = await Category.insertMany(
+      categories.map(category => ({
+        ...category,
+        user: adminUserId
+      }))
+    );
+
+    // Crear un mapa de nombres de categoría a IDs
+    const categoryMap = {};
+    createdCategories.forEach(cat => {
+      categoryMap[cat.name.toLowerCase()] = cat._id;
     });
 
-    await Product.insertMany(sampleProducts);
+    // Por defecto, si no se encuentra la categoría, usar la primera categoría
+    const defaultCategoryId = createdCategories[0]._id;
 
-    console.log('Datos importados!');
+    // Mapear productos con las referencias correctas de categoría
+    const productsWithCategories = products.map(product => {
+      // Intentar buscar un nombre similar en las categorías
+      let categoryId = defaultCategoryId;
+      
+      // Mapeo manual de categorías de ejemplo a tus categorías reales
+      const categoryMapping = {
+        'electrónica': 'moderna',
+        'accesorios': 'artesanal'
+      };
+      
+      const normalizedCategory = product.category.toLowerCase();
+      const mappedCategory = categoryMapping[normalizedCategory] || normalizedCategory;
+      
+      if (categoryMap[mappedCategory]) {
+        categoryId = categoryMap[mappedCategory];
+      }
+      
+      return {
+        ...product,
+        user: adminUserId,
+        category: categoryId,
+        // Convertir URLs relativas a absolutas (opcional)
+        image: product.image.startsWith('/') 
+          ? `https://example.com${product.image}` 
+          : product.image
+      };
+    });
+
+    // Insertar productos
+    await Product.insertMany(productsWithCategories);
+
+    console.log('Datos importados correctamente!');
     process.exit();
   } catch (error) {
     console.error(`Error: ${error.message}`);
@@ -38,11 +84,11 @@ const importData = async () => {
 
 const destroyData = async () => {
   try {
-    await Order.deleteMany();
     await Product.deleteMany();
     await User.deleteMany();
+    await Category.deleteMany();
 
-    console.log('Datos eliminados!');
+    console.log('Datos eliminados correctamente!');
     process.exit();
   } catch (error) {
     console.error(`Error: ${error.message}`);
