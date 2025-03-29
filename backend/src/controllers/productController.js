@@ -38,6 +38,8 @@ const getProducts = async (req, res) => {
   }
 };
 
+
+
 // @desc    Obtener un producto por ID
 // @route   GET /api/products/:id
 // @access  Público
@@ -213,29 +215,35 @@ const getFeaturedProducts = async (req, res) => {
   try {
     console.log('Buscando productos destacados...');
     
-    // Buscar productos destacados
+    // Buscar productos destacados sin populate para evitar errores
     let featuredProducts = await Product.find({ isFeatured: true })
-      .limit(6)
-      .populate('category');
+      .limit(6);
+    
+    console.log(`Se encontraron ${featuredProducts.length} productos destacados`);
     
     // Si no hay productos destacados o son menos de 4, obtener los más recientes
     if (featuredProducts.length < 4) {
-      console.log(`Solo se encontraron ${featuredProducts.length} productos destacados. Obteniendo los más recientes...`);
+      // Usar un array vacío si no hay productos destacados
+      const featuredIds = featuredProducts.length > 0 
+        ? featuredProducts.map(p => p._id) 
+        : [];
       
-      // Obtener productos más recientes (excluyendo los que ya tenemos)
-      const featuredIds = featuredProducts.map(p => p._id);
-      
-      const recentProducts = await Product.find({
-        _id: { $nin: featuredIds }
-      })
-        .sort({ createdAt: -1 })
-        .limit(6 - featuredProducts.length)
-        .populate('category');
+      // Buscar productos recientes sin el populate inicialmente
+      const recentProducts = await Product.find(
+        featuredIds.length > 0 ? { _id: { $nin: featuredIds } } : {}
+      )
+        .sort({ _id: -1 }) // Usar _id en vez de createdAt para mayor compatibilidad
+        .limit(6 - featuredProducts.length);
       
       // Combinar ambos conjuntos
       featuredProducts = [...featuredProducts, ...recentProducts];
       
       console.log(`Se agregaron ${recentProducts.length} productos recientes.`);
+    }
+    
+    // Asegurarse de que featuredProducts sea siempre un array
+    if (!Array.isArray(featuredProducts)) {
+      featuredProducts = [];
     }
     
     res.json(featuredProducts);

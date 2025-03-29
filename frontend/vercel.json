@@ -3,7 +3,8 @@
     {
       "source": "/api/:path*",
       "destination": "https://tu-backend.onrender.com/api/:path*"
-    }
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
