@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import api from '../../services/api';
 
 // Estado inicial
 const initialState = {
@@ -23,7 +23,7 @@ export const listOrders = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get('/api/orders', config);
+      const { data } = await api.get('/api/orders', config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -48,7 +48,7 @@ export const getOrderDetails = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`/api/orders/${id}`, config);
+      const { data } = await api.get(`/api/orders/${id}`, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -74,7 +74,7 @@ export const payOrder = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
+      const { data } = await api.put(
         `/api/orders/${id}/pay`,
         paymentResult,
         config
@@ -103,7 +103,7 @@ export const deliverOrder = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
+      const { data } = await api.put(
         `/api/orders/${id}/deliver`,
         {},
         config
@@ -133,7 +133,7 @@ export const createOrder = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.post('/api/orders', order, config);
+      const { data } = await api.post('/api/orders', order, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -158,7 +158,7 @@ export const listMyOrders = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get('/api/orders/myorders', config);
+      const { data } = await api.get('/api/orders/myorders', config);
       return data;
     } catch (error) {
       return rejectWithValue(

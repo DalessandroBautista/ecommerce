@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import config from '../../config';
+import api from '../../services/api';
 
 // Estado inicial
 const initialState = {
@@ -20,7 +19,7 @@ export const listProducts = createAsyncThunk(
   async ({ keyword = '', pageNumber = '' }, { rejectWithValue }) => {
     try {
       console.log('Solicitando lista de productos...');
-      const { data } = await axios.get(
+      const { data } = await api.get(
         `/api/products?keyword=${keyword}&pageNumber=${pageNumber}`
       );
       console.log('Productos recibidos:', data.products?.length);
@@ -42,7 +41,7 @@ export const listFeaturedProducts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       console.log('Solicitando productos destacados...');
-      const { data } = await axios.get(`${config.API_URL}/api/products/featured`);
+      const { data } = await api.get('/api/products/featured');
       console.log('Productos destacados recibidos:', data.length);
       return data;
     } catch (error) {
@@ -61,7 +60,7 @@ export const getProductDetails = createAsyncThunk(
   'product/getProductDetails',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/products/${id}`);
+      const { data } = await api.get(`/api/products/${id}`);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -86,7 +85,7 @@ export const deleteProduct = createAsyncThunk(
         },
       };
 
-      await axios.delete(`/api/products/${id}`, config);
+      await api.delete(`/api/products/${id}`, config);
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -111,7 +110,7 @@ export const createProduct = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.post(`/api/products`, productData, config);
+      const { data } = await api.post('/api/products', productData, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -137,7 +136,7 @@ export const updateProduct = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
+      const { data } = await api.put(
         `/api/products/${product._id}`,
         product,
         config
@@ -167,7 +166,7 @@ export const uploadProductImage = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.post('/api/upload', formData, config);
+      const { data } = await api.post('/api/upload', formData, config);
       return data;
     } catch (error) {
       return rejectWithValue(

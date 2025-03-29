@@ -1,9 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import config from '../../config';
-
-// URL base de la API
-const API_URL = config.API_URL;
+import api from '../../services/api';
 
 // Guardar cartId en localStorage
 const saveCartIdToStorage = (cartId) => {
@@ -31,12 +27,12 @@ export const fetchCart = createAsyncThunk(
           },
         };
         
-        const { data } = await axios.get(`${API_URL}/api/cart/user`, config);
+        const { data } = await api.get(`/api/cart/user`, config);
         return data;
       } 
       // Si hay un cartId guardado, obtenemos ese carrito
       else if (cartId) {
-        const { data } = await axios.get(`${API_URL}/api/cart/${cartId}`);
+        const { data } = await api.get(`/api/cart/${cartId}`);
         return data;
       }
       
@@ -71,7 +67,7 @@ export const updateCartItems = createAsyncThunk(
         },
       };
       
-      const { data } = await axios.post(`${API_URL}/api/cart`, requestBody, config);
+      const { data } = await api.post(`/api/cart`, requestBody, config);
       
       // Guardamos el cartId para futuros usos
       if (data.cartId) {
@@ -106,8 +102,8 @@ export const mergeCart = createAsyncThunk(
           },
         };
         
-        const { data } = await axios.post(
-          `${API_URL}/api/cart/merge`,
+        const { data } = await api.post(
+          `/api/cart/merge`,
           { cartId },
           config
         );

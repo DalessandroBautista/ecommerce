@@ -1,9 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import config from '../../config';
-
-// URL base de la API
-const API_URL = config.API_URL;
+import api from '../../services/api';
 
 // Estado inicial
 const initialState = {
@@ -26,7 +22,7 @@ export const listUsers = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.get(`${API_URL}/api/users`, config);
+      const { data } = await api.get(`/api/users`, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -51,7 +47,7 @@ export const deleteUser = createAsyncThunk(
         },
       };
 
-      await axios.delete(`${API_URL}/api/users/${id}`, config);
+      await api.delete(`/api/users/${id}`, config);
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -77,8 +73,8 @@ export const updateUserAdmin = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.put(
-        `${API_URL}/api/users/${id}`, 
+      const { data } = await api.put(
+        `/api/users/${id}`, 
         { isAdmin }, 
         config
       );
