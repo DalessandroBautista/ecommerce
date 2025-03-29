@@ -1,33 +1,22 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Row, Col, ListGroup, Image, Form, Button, Card } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { addItem, removeItem } from '../redux/slices/cartSlice';
+import Message from '../components/Message';
+import Loader from '../components/Loader';
 
 const CartPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
-  // Mock data - en producción vendría del estado Redux
-  const cartItems = [
-    {
-      _id: '1',
-      name: 'Alfombra Geométrica Azul',
-      image: 'https://placehold.co/400x400/2b58a7/FFFFFF?text=Geometrica',
-      price: 299.99,
-      countInStock: 10,
-      qty: 1,
-    },
-    {
-      _id: '3',
-      name: 'Alfombra Minimalista Gris',
-      image: 'https://placehold.co/400x400/2b58a7/FFFFFF?text=Minimalista',
-      price: 259.99,
-      countInStock: 8,
-      qty: 2,
-    },
-  ];
+  // Obtener el estado del carrito desde Redux
+  const cart = useSelector(state => state.cart);
+  const { cartItems, loading, error } = cart;
 
   const removeFromCartHandler = (id) => {
-    // Aquí iría la lógica para eliminar del carrito
-    console.log(`Eliminar del carrito producto ID: ${id}`);
+    // Despachar acción para eliminar del carrito
+    dispatch(removeItem(id));
   };
 
   const checkoutHandler = () => {
@@ -35,8 +24,11 @@ const CartPage = () => {
   };
 
   const updateQtyHandler = (id, qty) => {
-    // Aquí iría la lógica para actualizar cantidad
-    console.log(`Actualizar cantidad: producto ID: ${id}, nueva cantidad: ${qty}`);
+    // Despachar acción para actualizar cantidad
+    dispatch(addItem({
+      product: id,
+      quantity: Number(qty)
+    }));
   };
 
   // Calcular totales
@@ -50,20 +42,24 @@ const CartPage = () => {
       <h1 className="my-4">Carrito de Compras</h1>
       <Row>
         <Col md={8}>
-          {cartItems.length === 0 ? (
+          {loading ? (
+            <Loader />
+          ) : error ? (
+            <Message variant='danger'>{error}</Message>
+          ) : cartItems.length === 0 ? (
             <div className="alert alert-info">
               Tu carrito está vacío <Link to="/">Volver a la tienda</Link>
             </div>
           ) : (
             <ListGroup variant="flush">
               {cartItems.map((item) => (
-                <ListGroup.Item key={item._id}>
+                <ListGroup.Item key={item._id || item.product}>
                   <Row className="align-items-center">
                     <Col md={2}>
                       <Image src={item.image} alt={item.name} fluid rounded />
                     </Col>
                     <Col md={3}>
-                      <Link to={`/product/${item._id}`} className="product-name">
+                      <Link to={`/product/${item._id || item.product}`} className="product-name">
                         {item.name}
                       </Link>
                     </Col>
@@ -72,7 +68,7 @@ const CartPage = () => {
                       <Form.Control
                         as="select"
                         value={item.qty}
-                        onChange={(e) => updateQtyHandler(item._id, Number(e.target.value))}
+                        onChange={(e) => updateQtyHandler(item._id || item.product, Number(e.target.value))}
                       >
                         {[...Array(Math.min(item.countInStock, 5)).keys()].map((x) => (
                           <option key={x + 1} value={x + 1}>
@@ -85,7 +81,7 @@ const CartPage = () => {
                       <Button
                         type="button"
                         variant="light"
-                        onClick={() => removeFromCartHandler(item._id)}
+                        onClick={() => removeFromCartHandler(item._id || item.product)}
                       >
                         <i className="fas fa-trash"></i> Eliminar
                       </Button>

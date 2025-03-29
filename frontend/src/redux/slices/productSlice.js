@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import config from '../../config';
 
 // Estado inicial
 const initialState = {
@@ -18,11 +19,14 @@ export const listProducts = createAsyncThunk(
   'product/listProducts',
   async ({ keyword = '', pageNumber = '' }, { rejectWithValue }) => {
     try {
+      console.log('Solicitando lista de productos...');
       const { data } = await axios.get(
         `/api/products?keyword=${keyword}&pageNumber=${pageNumber}`
       );
+      console.log('Productos recibidos:', data.products?.length);
       return data;
     } catch (error) {
+      console.error('Error al obtener productos:', error);
       return rejectWithValue(
         error.response && error.response.data.message
           ? error.response.data.message
@@ -37,9 +41,12 @@ export const listFeaturedProducts = createAsyncThunk(
   'product/listFeaturedProducts',
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/products/featured`);
+      console.log('Solicitando productos destacados...');
+      const { data } = await axios.get(`${config.API_URL}/api/products/featured`);
+      console.log('Productos destacados recibidos:', data.length);
       return data;
     } catch (error) {
+      console.error('Error al obtener productos destacados:', error);
       return rejectWithValue(
         error.response && error.response.data.message
           ? error.response.data.message
@@ -50,8 +57,8 @@ export const listFeaturedProducts = createAsyncThunk(
 );
 
 // Obtener detalles de un producto
-export const listProductDetails = createAsyncThunk(
-  'product/listProductDetails',
+export const getProductDetails = createAsyncThunk(
+  'product/getProductDetails',
   async (id, { rejectWithValue }) => {
     try {
       const { data } = await axios.get(`/api/products/${id}`);
@@ -94,7 +101,7 @@ export const deleteProduct = createAsyncThunk(
 // Crear un producto
 export const createProduct = createAsyncThunk(
   'product/createProduct',
-  async (_, { getState, rejectWithValue }) => {
+  async (productData, { getState, rejectWithValue }) => {
     try {
       const { user } = getState().user;
       
@@ -104,7 +111,7 @@ export const createProduct = createAsyncThunk(
         },
       };
 
-      const { data } = await axios.post(`/api/products`, {}, config);
+      const { data } = await axios.post(`/api/products`, productData, config);
       return data;
     } catch (error) {
       return rejectWithValue(
@@ -176,10 +183,6 @@ const productSlice = createSlice({
   name: 'product',
   initialState,
   reducers: {
-    fetchProducts: (_state, _action) => {
-      // Esta acción se usa para simular la carga de productos
-      // No hace nada real por ahora, solo se incluye para compatibilidad
-    },
     clearProductError: (state) => {
       state.error = null;
     },
@@ -199,6 +202,80 @@ const productSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Listar productos
+      .addCase(listProducts.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(listProducts.fulfilled, (state, action) => {
+        console.log('Datos recibidos en Redux:', action.payload);
+        state.loading = false;
+        state.products = action.payload.products || [];
+        state.page = action.payload.page || 1;
+        state.pages = action.payload.pages || 1;
+      })
+      .addCase(listProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Listar productos destacados
+      .addCase(listFeaturedProducts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(listFeaturedProducts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.featuredProducts = action.payload;
+      })
+      .addCase(listFeaturedProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Obtener detalles de producto
+      .addCase(getProductDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getProductDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.product = action.payload;
+      })
+      .addCase(getProductDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Eliminar producto
+      .addCase(deleteProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.products = state.products.filter(product => product._id !== action.payload);
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
+      // Crear producto
+      .addCase(createProduct.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.product = action.payload;
+      })
+      .addCase(createProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      
       // Actualizar producto
       .addCase(updateProduct.pending, (state) => {
         state.loading = true;
@@ -213,11 +290,24 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      
+      // Subir imagen de producto
+      .addCase(uploadProductImage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadProductImage.fulfilled, (state) => {
+        state.loading = false;
+        state.success = true;
+      })
+      .addCase(uploadProductImage.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
 export const {
-  fetchProducts,
   clearProductError,
   resetProductDetails,
   resetProductUpdate,

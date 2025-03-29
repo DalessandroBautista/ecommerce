@@ -26,15 +26,16 @@ import ProductListPage from './pages/admin/ProductListPage';
 import ProductEditPage from './pages/admin/ProductEditPage';
 import CategoryListPage from './pages/admin/CategoryListPage';
 import OrderListPage from './pages/admin/OrderListPage';
+import ProductCreateEditPage from './pages/admin/ProductCreateEditPage';
 
 const App = () => {
   return (
     <Router>
       <AbilityProvider>
         <Header />
-        <main className="py-3">
+        <main className="p-0 m-0">
           <Routes>
-            <Route path="/" element={<HomePage />} exact />
+            <Route path="/" element={<HomePage />} />
             
             <Route 
               path="/*" 
@@ -55,10 +56,13 @@ const App = () => {
                     
                     <Route path="/admin/dashboard" element={<Dashboard />} />
                     <Route path="/admin/users" element={<UserListPage />} />
-                    <Route path="/admin/products" element={<ProductListPage />} />
+                    <Route path="/admin/productlist" element={<ProductListPage />} />
+                    <Route path="/admin/productlist/:pageNumber" element={<ProductListPage />} />
                     <Route path="/admin/product/:id/edit" element={<ProductEditPage />} />
                     <Route path="/admin/categories" element={<CategoryListPage />} />
                     <Route path="/admin/orders" element={<OrderListPage />} />
+                    <Route path="/admin/product/create" element={<ProductCreateEditPage />} />
+                    <Route path="/admin/product/:id/edit" element={<ProductCreateEditPage />} />
                   </Routes>
                 </Container>
               } 

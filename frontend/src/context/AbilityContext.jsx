@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect } from 'react';
 import { Ability, AbilityBuilder } from '@casl/ability';
 import { useSelector } from 'react-redux';
+import { createContextualCan } from '@casl/react';
 
 // Crear contexto
 const AbilityContext = createContext();
@@ -8,11 +9,8 @@ const AbilityContext = createContext();
 // Hook personalizado para usar habilidades
 export const useAbility = () => useContext(AbilityContext);
 
-// Componente Can para comprobar permisos
-export const Can = ({ I, a, this: target, children }) => {
-  const ability = useAbility();
-  return ability.can(I, a, target) ? children : null;
-};
+// Componente Can que usa createContextualCan
+const Can = createContextualCan(AbilityContext.Consumer);
 
 // Proveedor de habilidades
 export const AbilityProvider = ({ children }) => {
@@ -60,3 +58,18 @@ export const AbilityProvider = ({ children }) => {
     </AbilityContext.Provider>
   );
 };
+
+// Alternativa: Crear un componente Can manual si hay problemas con la versión anterior
+export const CanWrapper = ({ I, a, on, do: action, this: subject, children }) => {
+  const ability = useAbility();
+  
+  // Verificar si el usuario puede realizar la acción
+  const check = typeof action === 'string' 
+    ? ability.can(action, subject)
+    : ability.can(I, a, on);
+  
+  // Renderizar los hijos solo si tiene permisos
+  return check ? <>{children}</> : null;
+};
+
+export { AbilityContext, Can };

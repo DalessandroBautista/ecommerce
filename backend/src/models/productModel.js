@@ -40,29 +40,19 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    additionalImages: [
+      {
+        type: String
+      }
+    ],
     brand: {
       type: String,
       required: true,
     },
     category: {
-      type: String,
-      required: true,
-      // Definimos valores predeterminados, pero permitimos valores personalizados
-      enum: {
-        values: [
-          'Electrónica',
-          'Computadoras',
-          'Cámaras',
-          'Teléfonos',
-          'Accesorios',
-          'Hogar',
-          'Deportes',
-          'Belleza',
-          'Ropa',
-          'Otros'
-        ],
-        message: '{VALUE} no es una categoría válida'
-      }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true
     },
     description: {
       type: String,
@@ -89,10 +79,16 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: 0,
     },
-    featured: {
+    isFeatured: {
       type: Boolean,
-      default: false,
+      default: false
     },
+    dimensions: {
+      width: { type: Number },
+      height: { type: Number }
+    },
+    material: String,
+    technique: String
   },
   {
     timestamps: true,

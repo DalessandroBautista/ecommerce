@@ -11,7 +11,6 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:4000', // Ajusta esta URL al puerto donde corre tu backend
         changeOrigin: true,
-        secure: false,
       },
     }
   }

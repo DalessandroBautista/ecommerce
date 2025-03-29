@@ -1,4 +1,5 @@
 const Product = require('../models/productModel');
+const mongoose = require('mongoose');
 
 // @desc    Obtener todos los productos
 // @route   GET /api/products
@@ -17,13 +18,22 @@ const getProducts = async (req, res) => {
         }
       : {};
 
+    // Añadir logs detallados para diagnóstico
+    console.log('Consulta MongoDB:', { keyword, page, pageSize });
+    
     const count = await Product.countDocuments({ ...keyword });
+    console.log('Total de productos en MongoDB:', count);
+    
     const products = await Product.find({ ...keyword })
       .limit(pageSize)
       .skip(pageSize * (page - 1));
+    
+    console.log('Productos encontrados:', products.length);
+    console.log('Primer producto:', products[0] ? products[0]._id : 'Ninguno');
 
     res.json({ products, page, pages: Math.ceil(count / pageSize) });
   } catch (error) {
+    console.error('Error en getProducts:', error);
     res.status(500).json({ message: 'Error del servidor', error: error.message });
   }
 };
@@ -76,24 +86,45 @@ const createProduct = async (req, res) => {
       brand,
       category,
       countInStock,
+      isFeatured,
+      additionalImages,
+      dimensions,
+      material,
+      technique
     } = req.body;
+
+    // Validar campos requeridos
+    if (!name || !image || !brand || !category || !description) {
+      return res.status(400).json({ 
+        message: 'Por favor complete todos los campos obligatorios' 
+      });
+    }
 
     const product = new Product({
       name,
-      price,
+      price: Number(price) || 0,
       user: req.user._id,
       image,
+      additionalImages: additionalImages || [],
       brand,
       category,
-      countInStock,
+      countInStock: Number(countInStock) || 0,
       numReviews: 0,
       description,
+      isFeatured: Boolean(isFeatured),
+      dimensions,
+      material,
+      technique
     });
 
     const createdProduct = await product.save();
     res.status(201).json(createdProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Error del servidor', error: error.message });
+    console.error('Error al crear producto:', error);
+    res.status(500).json({ 
+      message: 'Error al crear el producto', 
+      error: error.message 
+    });
   }
 };
 
@@ -175,6 +206,48 @@ const createProductReview = async (req, res) => {
   }
 };
 
+// @desc    Obtener productos destacados
+// @route   GET /api/products/featured
+// @access  Público
+const getFeaturedProducts = async (req, res) => {
+  try {
+    console.log('Buscando productos destacados...');
+    
+    // Buscar productos destacados
+    let featuredProducts = await Product.find({ isFeatured: true })
+      .limit(6)
+      .populate('category');
+    
+    // Si no hay productos destacados o son menos de 4, obtener los más recientes
+    if (featuredProducts.length < 4) {
+      console.log(`Solo se encontraron ${featuredProducts.length} productos destacados. Obteniendo los más recientes...`);
+      
+      // Obtener productos más recientes (excluyendo los que ya tenemos)
+      const featuredIds = featuredProducts.map(p => p._id);
+      
+      const recentProducts = await Product.find({
+        _id: { $nin: featuredIds }
+      })
+        .sort({ createdAt: -1 })
+        .limit(6 - featuredProducts.length)
+        .populate('category');
+      
+      // Combinar ambos conjuntos
+      featuredProducts = [...featuredProducts, ...recentProducts];
+      
+      console.log(`Se agregaron ${recentProducts.length} productos recientes.`);
+    }
+    
+    res.json(featuredProducts);
+  } catch (error) {
+    console.error('Error en getFeaturedProducts:', error);
+    res.status(500).json({ 
+      message: 'Error al obtener productos destacados', 
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   getProductById,
@@ -182,4 +255,5 @@ module.exports = {
   createProduct,
   updateProduct,
   createProductReview,
+  getFeaturedProducts,
 };

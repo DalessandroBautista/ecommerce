@@ -15,7 +15,10 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Añade todos los orígenes posibles
+  credentials: true
+}));
 app.use(express.json());
 
 // Ruta especial para webhook de Stripe que necesita cuerpo raw
@@ -45,11 +48,11 @@ const PORT = process.env.PORT || 4000;
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log('Conectado a MongoDB');
+    console.log('✅ Conectado a MongoDB');
     app.listen(PORT, () => {
-      console.log(`Servidor corriendo en el puerto ${PORT}`);
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
   })
   .catch((error) => {
-    console.error('Error al conectar a MongoDB:', error.message);
+    console.error('❌ Error al conectar a MongoDB:', error.message);
   });

@@ -30,14 +30,9 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  padding-top: 56px; /* Altura de la navbar */
 }
 
-@media (min-width: 992px) {
-  body {
-    padding-top: 70px; /* Navbar más alta en pantallas grandes */
-  }
-}
+
 
 .container-fluid {
   padding-left: 0;

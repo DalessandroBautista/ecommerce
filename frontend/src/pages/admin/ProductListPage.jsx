@@ -1,23 +1,29 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Table, Button, Row, Col, Modal } from 'react-bootstrap';
+import { Button, Row, Col, Card, Badge, Modal, Container } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
-import { Can } from '../../context/AbilityContext';
+import { CanWrapper as Can } from '../../context/AbilityContext';
 import Message from '../../components/Message';
 import Loader from '../../components/Loader';
 import Paginate from '../../components/Paginate';
-import { FaEdit, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaPlus, FaTrash, FaSearch } from 'react-icons/fa';
 import {
   listProducts,
   deleteProduct,
   createProduct,
   resetProductCreate
 } from '../../redux/slices/productSlice';
+import ProductCard from '../../components/ProductCard';
+import '../../assets/styles/productList.css';
 
 const ProductListPage = () => {
+  console.log('🔍 Renderizando ProductListPage');
+
   const { pageNumber = 1 } = useParams();
   const [showModal, setShowModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [keyword, setKeyword] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,6 +41,19 @@ const ProductListPage = () => {
   const { user } = useSelector((state) => state.user);
 
   useEffect(() => {
+    console.log('🔵 ProductListPage: Componente montado');
+    return () => {
+      console.log('🔴 ProductListPage: Componente desmontado');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('useEffect ProductListPage', {
+      user,
+      isAdmin: user?.isAdmin,
+      success,
+      createdProduct
+    });
     // Verificar si el usuario es administrador
     if (!user || !user.isAdmin) {
       navigate('/login');
@@ -49,116 +68,71 @@ const ProductListPage = () => {
     }
   }, [dispatch, navigate, user, success, createdProduct, pageNumber]);
 
-  const deleteHandler = (product) => {
-    setProductToDelete(product);
-    setShowModal(true);
-  };
-
-  const confirmDelete = () => {
-    dispatch(deleteProduct(productToDelete._id));
-    setShowModal(false);
+  const deleteHandler = (id) => {
+    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
+      dispatch(deleteProduct(id));
+    }
   };
 
   const createProductHandler = () => {
     dispatch(createProduct());
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    dispatch(listProducts({ keyword }));
+  };
+
   return (
-    <Can I="manage" a="Product">
-      {() => (
-        <>
-          <Row className="align-items-center">
-            <Col>
-              <h1>Productos</h1>
-            </Col>
-            <Col className="text-end">
-              <Button className="my-3" onClick={createProductHandler}>
-                <FaPlus /> Crear Producto
+    <Container className="py-4">
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h1 className="mb-0">Productos</h1>
+            <Link to="/admin/product/create">
+              <Button variant="success">
+                <FaPlus className="me-2" /> Crear Producto
               </Button>
-            </Col>
-          </Row>
+            </Link>
+          </div>
+          
+          <form onSubmit={handleSearch} className="mb-4">
+            <div className="input-group">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Buscar productos..."
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
+              <button type="submit" className="btn btn-primary">
+                <FaSearch />
+              </button>
+            </div>
+          </form>
+
           {loading ? (
             <Loader />
           ) : error ? (
             <Message variant="danger">{error}</Message>
+          ) : products.length === 0 ? (
+            <Message>No hay productos disponibles</Message>
           ) : (
-            <>
-              <Table striped bordered hover responsive className="table-sm">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>NOMBRE</th>
-                    <th>PRECIO</th>
-                    <th>CATEGORÍA</th>
-                    <th>MARCA</th>
-                    <th>STOCK</th>
-                    <th>DESTACADO</th>
-                    <th>ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => (
-                    <tr key={product._id}>
-                      <td>{product._id}</td>
-                      <td>{product.name}</td>
-                      <td>${product.price}</td>
-                      <td>{product.category && product.category.name}</td>
-                      <td>{product.brand}</td>
-                      <td>{product.countInStock}</td>
-                      <td>
-                        {product.featured ? (
-                          <i className="fas fa-check" style={{ color: "green" }}></i>
-                        ) : (
-                          <i className="fas fa-times" style={{ color: "red" }}></i>
-                        )}
-                      </td>
-                      <td>
-                        <Link to={`/admin/product/${product._id}/edit`}>
-                          <Button variant="light" className="btn-sm me-2">
-                            <FaEdit />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="danger"
-                          className="btn-sm"
-                          onClick={() => deleteHandler(product)}
-                        >
-                          <FaTrash />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-              <Paginate pages={pages} page={page} isAdmin={true} />
-            </>
+            <Row>
+              {products.map((product) => (
+                <Col sm={12} md={6} lg={4} xl={3} className="mb-4" key={product._id}>
+                  <ProductCard 
+                    product={product}
+                    onEdit={(id) => navigate(`/admin/product/${id}/edit`)}
+                    onDelete={deleteHandler}
+                  />
+                </Col>
+              ))}
+            </Row>
           )}
-
-          {/* Modal de confirmación para eliminar producto */}
-          <Modal show={showModal} onHide={() => setShowModal(false)}>
-            <Modal.Header closeButton>
-              <Modal.Title>Confirmar eliminación</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              {productToDelete && (
-                <p>
-                  ¿Estás seguro de que deseas eliminar el producto <strong>{productToDelete.name}</strong>?
-                  Esta acción no se puede deshacer.
-                </p>
-              )}
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
-                Cancelar
-              </Button>
-              <Button variant="danger" onClick={confirmDelete}>
-                Eliminar
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        </>
-      )}
-    </Can>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

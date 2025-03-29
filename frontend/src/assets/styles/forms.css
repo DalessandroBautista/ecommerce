@@ -1,0 +1,75 @@
+/* Estilos para los formularios de productos */
+.image-preview-container {
+  background-color: #f9f9f9;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #ced4da;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.image-preview-container.has-image img {
+  pointer-events: auto;
+}
+
+.image-preview-container .text-muted {
+  pointer-events: none;
+}
+
+.custom-file-upload {
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-file-upload input[type="file"] {
+  cursor: pointer;
+}
+
+/* Animaciones y efectos hover */
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Para campos que son obligatorios */
+.form-label.required:after {
+  content: " *";
+  color: #dc3545;
+}
+
+/* Estilos para la disposición en dispositivos móviles */
+@media (max-width: 768px) {
+  .card-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+/* Asegurar que los botones y campos de entrada tengan prioridad */
+.form-control, .btn, .input-group {
+  position: relative;
+  z-index: 2;
+}
+
+/* Evitar que los contenedores capturen eventos de clic inadvertidamente */
+.card-body {
+  position: relative;
+} 

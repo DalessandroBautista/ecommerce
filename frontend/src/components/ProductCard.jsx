@@ -1,12 +1,16 @@
-import { Card, Button } from 'react-bootstrap';
+/* eslint-disable no-unused-vars */
+import React, { useState } from 'react';
+import { Card, Button, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { FaShoppingCart } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { FaShoppingCart, FaEdit, FaTrash, FaBoxOpen, FaImage } from 'react-icons/fa';
 import Rating from './Rating';
 import { addItem, updateCartItems } from '../redux/slices/cartSlice';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, onEdit, onDelete }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state.user);
+  const [imageError, setImageError] = useState(false);
 
   const addToCartHandler = () => {
     const item = {
@@ -21,42 +25,91 @@ const ProductCard = ({ product }) => {
     dispatch(updateCartItems([item]));
   };
 
+  // Verifica si el usuario es administrador
+  const showAdminControls = user && user.isAdmin;
+
+  // Función segura para manejar errores de imagen
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   return (
-    <Card className="product-card my-3">
-      <Link to={`/product/${product._id}`}>
-        <Card.Img src={product.image} variant="top" />
-      </Link>
-
-      <Card.Body>
-        <Link to={`/product/${product._id}`} className="text-decoration-none">
-          <Card.Title as="h5" className="product-title">
-            {product.name}
-          </Card.Title>
-        </Link>
-        
-
-        <Card.Text as="div">
-          <Rating
-            value={product.rating}
-            text={`${product.numReviews} reseñas`}
+    <Card className="product-card h-100 shadow-sm">
+      <div className="product-image-container" style={{ height: '200px', backgroundColor: '#f8f9fa' }}>
+        {!imageError ? (
+          <Card.Img 
+            variant="top" 
+            src={product.image} 
+            alt={product.name}
+            onError={handleImageError}
+            style={{ objectFit: 'contain', height: '100%', width: '100%', padding: '10px' }}
           />
-        </Card.Text>
-
-        <Card.Text as="h4" className="price mt-2">
-          ${product.price.toFixed(2)}
-        </Card.Text>
-
-        <Button 
-          variant="primary" 
-          className="btn-add-cart"
-          onClick={addToCartHandler}
-          disabled={product.countInStock === 0}
-        >
-          <FaShoppingCart className="me-2" />
-          {product.countInStock > 0 ? 'Añadir al carrito' : 'Sin stock'}
-        </Button>
+        ) : (
+          <div className="d-flex align-items-center justify-content-center h-100 text-muted">
+            <div className="text-center">
+              <FaImage size={40} />
+              <p className="mt-2">Sin imagen disponible</p>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <Card.Body>
+        <Card.Title className="fw-bold mb-2">{product.name}</Card.Title>
+        <Badge bg="secondary" className="mb-2">{product.brand}</Badge>
+        <h3 className="text-primary my-2">${product.price?.toFixed(2)}</h3>
+        
+        <div className="d-flex align-items-center">
+          <FaBoxOpen className="me-1 text-muted" /> 
+          <small>Stock: {product.countInStock} unidades</small>
+        </div>
       </Card.Body>
+      
+      <Card.Footer className="bg-white d-flex justify-content-between">
+        <Button 
+          variant="outline-primary" 
+          size="sm" 
+          onClick={() => onEdit(product._id)}
+        >
+          <FaEdit className="me-1" /> Editar
+        </Button>
+        <Button 
+          variant="outline-danger" 
+          size="sm" 
+          onClick={() => onDelete(product._id)}
+        >
+          <FaTrash className="me-1" /> Eliminar
+        </Button>
+      </Card.Footer>
     </Card>
+  );
+};
+
+// Componente de imagen segura integrado
+const SafeImage = ({ src, alt, className }) => {
+  const fallbackStyle = {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    color: '#888',
+    fontFamily: 'Arial, sans-serif'
+  };
+
+  return src ? (
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.nextSibling.style.display = 'flex';
+      }}
+    />
+  ) : (
+    <div style={fallbackStyle}>Sin imagen disponible</div>
   );
 };
 
